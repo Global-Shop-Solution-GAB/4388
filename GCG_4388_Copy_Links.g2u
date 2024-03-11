@@ -1,0 +1,65 @@
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+'This will be a custom project that will copy the Document control links from the RFQ to the Quote.  
+v.Local..BulkDeclareString(sQuoteLinkID, sRFQLinkID, sQuote, sRFQ)
+v.Local.bgroup.Declare(boolean)
+
+f.Intrinsic.Control.If(v.Caller.Hook,=,10710)
+	f.Global.Security.IsInGroup(v.Caller.User,"DOCT",v.Local.bgroup)
+	f.Intrinsic.Control.If(v.Local.bgroup,=,True)
+		'set the text of the script button
+		v.Passed.000201.Set("Doc Trans")
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.If(v.Caller.Hook,=,10960)
+	f.Global.Security.IsInGroup(v.Caller.User,"DOCT",v.Local.bgroup)
+	f.Intrinsic.Control.If(v.Local.bgroup,=,True)
+		'set the quote and the RFQ number
+		v.Local.sQuote.Set(v.Passed.000003)
+		f.Intrinsic.String.LPad(v.Local.sQuote,"0",7,v.Local.sQuote)
+		'set the RFQ
+		v.Local.sRFQ.Set(v.Local.sQuote)
+		Function.Global.DocumentControl.GetLinkID(v.Local.sRFQ, 85, v.Local.sRFQLinkID)
+		F.Intrinsic.Control.If(v.Local.sRFQLinkID,<>,"-1")
+			Function.Global.DocumentControl.CreateReference(v.Local.sQuote, 50,v.Local.sQuoteLinkID)
+			Function.Global.DocumentControl.CopyExt(v.Local.sRFQLinkID, v.Local.sQuoteLinkID, false, true, V.Ambient.PUser)
+			f.Intrinsic.UI.Msgbox("Documents have been transferred")
+		F.Intrinsic.Control.Endif
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4388_Copy_Links.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.End
+
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$WAW$}$2/23/2017 4:11:51 PM$}$False
+${$3$}$0$}$$}$-1$}$-1$}$$}$1/1/1900$}$This project was created for Kosmo Machine, Inc. on June of 2016.
+
+
+This is a custom GAB script that will display custom work order detail information. The information will be identical to the data from the work order detail grid in the standard GSS system however the user will not have the ability to browse via the ?Amount? column.
+The purpose of this is the customer has quoters/planners that would like to see this specific information and cannot do so with the Work Order (No Dollars) or WO Detail standard report.
+This GAB script is to run from the Work Order header screen. The script will check to see if the user is a part of the WODET security group. If they are not the ?Details? button will be disabled and the ?Script 1? button will be activated with the custom GAB script.
+Customer will need to set up the WODET security group prior to installation. Customer is responsible for setting up security for the standard work order screens if certain users are not to access it.
+
+**Note: Given the information on the custom grid, just as with the standard WO detail screen, given certain parameters pay for Labor may be calculated by users.
+Program.Sub.Comments.End
